@@ -1,39 +1,67 @@
 ---
 title: "Exponential distribution and CLT"
 author: "Simon Lidberg"
-date: "24 augusti 2017"
+date: "28th of August 2017"
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+require(knitr)
+require(ggplot2)
 ```
 
-## Overview
+## Overview  
+This project will test the central limit theorem (CLT) with the exponential function.
 
-## Simulations: 
-Include English explanations of the simulations you ran, with the accompanying R code. Your explanations should make clear what the R code accomplishes.
+## Simulations  
+The default values for the simulations are stated below in the R code. The simulations are run 1000 times, each generating 40 rexp values with a lambda value of 0.2. The rexp values are either summarized with mean or var.
 
-## Sample Mean versus Theoretical Mean
-Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers.
+```{r simulations}
+# Since we are using random numbers, we should set the seed value for reproducability.
+set.seed(42)
 
-## Sample Variance versus Theoretical Variance
-Include figures (output from R) with titles. Highlight the variances you are comparing. Include text that explains your understanding of the differences of the variances.
+# Lambda should be 0.2 for all simulations.
+lambda <- 0.2
 
-## Distribution
-Via figures and text, explain how one can tell the distribution is approximately normal.
-In point 3, focus on the difference between the distribution of a large collection of random exponentials and the distribution of a large collection of averages of 40 exponentials.
+# The number of exponentials to average.
+size <- 40
 
-As a motivating example, compare the distribution of 1000 random uniforms
+# The number of simulations to perform.
+nrSimulations <- 1000
 
-hist(runif(1000))
+# The simulated means.
+means <- replicate(nrSimulations, mean(rexp(size, lambda)))
 
-and the distribution of 1000 averages of 40 random uniforms
+# The simulated standard deviations.
+vars <- replicate(nrSimulations, sd(rexp(size, lambda)))
 
-mns = NULL
-for (i in 1 : 1000) mns = c(mns, mean(runif(40)))
-hist(mns)
+# Print it nicely with kable.
+Statistic <- c("Mean","Std. Deviation")
+Sample <- c(round(mean(means),2),round(mean(vars),2))
+Theoretical <- c(1/lambda, 1/lambda)
+theTable <- data.frame(Statistic,Sample,Theoretical)
+rownames(theTable) <- NULL
+kable(theTable)
 
-This distribution looks far more Gaussian than the original uniform distribution!
+```
 
-This exercise is asking you to use your knowledge of the theory given in class to relate the two distributions.
+## Distribution  
+Showing the histogram for the means, it resembles the density of the normal distribution, superimposed on the graph.
+
+```{r}
+hist(means, freq=FALSE, xlim= 5 +c(-3, 3), ylim = c(0, 0.7), xlab = "Means of rexp(40, 1/lambda)", main = "Histogram of the simulated values")
+curve(dnorm(x, mean = 5, sd = 25/40), add = TRUE)
+```
+
+We can also use a Q-Q plot to show how closely it correlates to the normal distribution.
+
+```{r}
+qqnorm(means)
+qqline(means)
+```
+
+The closer the points are to the straight line, the better the estimate is.
+This is possible through the CLT.
+
+We can conclude that the distribution is approximately normal and that the distribution of means of 40 exponentials behave as predicted by the CLT.
