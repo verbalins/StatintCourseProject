@@ -1,28 +1,48 @@
 ---
 title: "Basic Inferential Data Analysis"
 author: "Simon Lidberg"
-date: "24 augusti 2017"
+date: "28th of August 2017"
 output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+require(datasets)
+require(pastecs)
+require(ggplot2)
+require(dplyr)
 ```
 
-Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+## Overview
+This analysis will compare the effect of Vitamin C on tooth growth in Guinea Pigs.
+
+## Basic exploratory analysis  
+From the help file we can see that the dataset consists of 60 observations with 3 variables.
+The tooth length, the supplement type and the dose.
 
 ```{r LoadAndExplore}
-# Make sure that the data is available and then convert it to a tibble for easier handling.
-require(datasets)
+# Load the dataset.
 data <- ToothGrowth
 
+# Show a summary of the dataset.
 summary(data)
+
+# Some summary statistics with grouping.
+data %>% group_by(supp) %>% summarize(mean = mean(len), sd = sd(len))
+
+# Show detailed statistics for len.
+stat.desc(data[,1], norm = TRUE)
+
+# Make an exploratory plot.
+qplot(data = ToothGrowth, x = len, y = dose, facets = supp ~ .)
 ```
+The exploratory analysis seems to indicate that VC combined with the largest dose results in the highest length of teeth and that OJ supplement form gives the higher mean length. Let's find out if that holds up with hypothesis testing and confidence intervals.
 
-
-Load the ToothGrowth data and perform some basic exploratory data analyses
-Provide a basic summary of the data.
-
+## Compare tooth growth by supp and dose.
 Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
 
+
+
+
+## Conclusions
 State your conclusions and the assumptions needed for your conclusions.
