@@ -19,23 +19,24 @@ This analysis will compare the effect of Vitamin C on tooth growth in Guinea Pig
 
 ## Basic exploratory analysis  
 From the help file we can see that the dataset consists of 60 observations with 3 variables.
-The tooth length, the supplement type and the dose. First we see a summary of the values and then a statistical summary, followed by an exploratory chart and a Q-Q plot for evaluating normality.
+The tooth length, the supplement type and the dose. First we see a summary of the values followed by an exploratory chart and a Q-Q plot for evaluating normality.
 
 ```{r ref.label="LoadAndExplore", echo = FALSE, warning=FALSE}
 ```
 ```{r ref.label="plots", echo = FALSE, warning=FALSE}
 ```
 
-The exploratory analysis seems to indicate that OJ has higher efficacy in smaller doses, and that both delivery methods have similar efficacy with the largest dose.
+The exploratory analysis seems to indicate that OJ has higher efficacy in the two first doses, and that both delivery methods have similar efficacy with the largest dose.
 
 ## Compare tooth growth by supp and dose.
-Using t-tests due to the size being small for each variable. The p-value for the tests can be seen below. Only testing 0.5 against 1 and 1 against 2 because of the differences in mean seen in the boxplot. Using p = 0.05.
+Using t-tests due to the size being small for each variable. The p-value for the tests can be seen below. Only testing 0.5 against 1 and 1 against 2 because of the differences in mean seen in the boxplot. Testing against p = 0.05.
 ```{r ref.label="calcResults", echo = FALSE, waning =FALSE}
 ```
-The first hypothesis where OC is less than VC can be rejected due to 0.03 < 0.05. The other two hypothesises are true.
+
+The first test indicates that we cannot reject the null hypothesis that the means are equal for just the method. For dose 0.5 and 1, there's a difference in the means indicated by the confidence intervals and the p-values. For 2 mg/day we can say that the methods are equally effective.
 
 ## Conclusions
-Due to the underlying data being considered normally distributed. It's possible to conclude that the OJ mean is higher and that the delivery method has an effect on tooth growth. It can also be seen from the p-values that a larger dose is more efficient regardless of delivery method.
+Due to the underlying data being considered normally distributed. It's possible to conclude that the OJ mean is higher for lower doses and that the delivery method has an effect on tooth growth. For the largest dose, the delivery method does not matter.
 
 \newpage
 
@@ -48,13 +49,13 @@ toothdata <- ToothGrowth
 summary(toothdata)
 
 # Show detailed statistics for len.
-stat.desc(toothdata[,1], norm = TRUE)
+# stat.desc(toothdata[,1], norm = TRUE)
 ```
 
 ```{r plots, echo=TRUE, eval=FALSE}
 # Make an exploratory plot.
 ggplot(data = toothdata, aes(supp, len)) + geom_boxplot() + facet_wrap(~dose) +
-  labs(title = "Exploratory boxplot", x = "Delivery method", y = "Tooth length")
+  labs(title = "Exploratory boxplot for tooth length", x = "Delivery method", y = "Tooth length")
 # Q-Q plot for normality testing.
 qqnorm(toothdata$len)
 qqline(toothdata$len)
@@ -62,27 +63,26 @@ qqline(toothdata$len)
 
 ```{r calcResults, echo=TRUE, eval=FALSE}
 # p-value of supp OJ having a larger effect than VC.
-PValue <- NULL
-PValue <- c(PValue, 
-            t.test(len~supp, data = toothdata,
-                   alternative = "greater",
-                   var.equal = TRUE)$p.value)
+hypoth <- t.test(len~supp, data = toothdata)
+results <- c(hypoth$conf.int, hypoth$p.value)
+names(results) <- c("Lower CI", "Upper CI", "P-value")
 
-# Testing dose 0.5 against dose 1.
-PValue <- c(PValue, 
-            t.test(toothdata[toothdata$dose==0.5,"len"]-toothdata[toothdata$dose==1,"len"], 
-                   alternative = "greater", 
-                   var.equal = TRUE)$p.value)
+# Testing dose 0.5.
+hypoth <- t.test(len~supp, data = subset(toothdata, dose == 0.5))
+results <- rbind(results, c(hypoth$conf.int, hypoth$p.value))
 
-# Testing dose 1 against dose 2.
-PValue <- c(PValue, 
-            t.test(toothdata[toothdata$dose==1,"len"]-toothdata[toothdata$dose==2,"len"], 
-                   alternative = "greater",
-                   var.equal = TRUE)$p.value)
+# Testing dose 1.
+hypoth <- t.test(len~supp, data = subset(toothdata, dose == 1))
+results <- rbind(results, c(hypoth$conf.int, hypoth$p.value))
+
+# Testing for dose 2.
+hypoth <- t.test(len~supp, data = subset(toothdata, dose == 2))
+results <- rbind(results, c(hypoth$conf.int, hypoth$p.value))
 
 # Print it nicely with kable.
-Statistic <- c("OC < VC","Dose0.5 < Dose1", "Dose1 < Dose2")
-theTable <- data.frame(Statistic,PValue)
+Test <- c("len~supp","Dose0.5", "Dose1", "Dose2")
+rownames(results) <- NULL
+theTable <- data.frame(Test,results)
 rownames(theTable) <- NULL
 kable(theTable)
 ```
