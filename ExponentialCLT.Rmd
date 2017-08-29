@@ -1,7 +1,7 @@
 ---
 title: "Exponential distribution and CLT"
 author: "Simon Lidberg"
-date: "28th of August 2017"
+date: "29th of August 2017"
 output: pdf_document
 ---
 
